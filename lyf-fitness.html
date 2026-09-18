@@ -1,0 +1,1526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>LYF FITNESS — Member Manager</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ============ TOKENS ============ */
+:root{
+  --ink:#15181E;
+  --ink-2:#20242D;
+  --paper:#F5F4EF;
+  --surface:#FFFFFF;
+  --line:#E4E1D8;
+  --muted:#6C6F76;
+  --muted-2:#8C8F96;
+  --accent:#E63946;
+  --accent-ink:#FFFFFF;
+  --accent-soft:#FDE7E8;
+  --success:#2E9E5B;
+  --success-soft:#E3F5EA;
+  --warning:#C9871F;
+  --warning-soft:#FBF0DD;
+  --danger:#D6455A;
+  --danger-soft:#FBE7EA;
+  --focus:#2E5EFF;
+  --radius-s:8px;
+  --radius-m:14px;
+  --radius-l:20px;
+  --shadow:0 1px 2px rgba(20,20,20,.04), 0 8px 24px -12px rgba(20,20,20,.18);
+  --font-display:'Oswald', 'Arial Narrow', sans-serif;
+  --font-body:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ink:#F2F1EC;
+    --ink-2:#D8D6CE;
+    --paper:#14161B;
+    --surface:#1B1E25;
+    --line:#2C303A;
+    --muted:#9A9DA6;
+    --muted-2:#767980;
+    --accent:#FF5A66;
+    --accent-ink:#14161B;
+    --accent-soft:#3A2024;
+    --success:#4FC384;
+    --success-soft:#173327;
+    --warning:#E3A94A;
+    --warning-soft:#3A2E15;
+    --danger:#FF6B7D;
+    --danger-soft:#3A1E24;
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+  }
+}
+:root[data-theme="dark"]{
+  --ink:#F2F1EC; --ink-2:#D8D6CE; --paper:#14161B; --surface:#1B1E25; --line:#2C303A;
+  --muted:#9A9DA6; --muted-2:#767980; --accent:#FF5A66; --accent-ink:#14161B;
+  --accent-soft:#3A2024; --success:#4FC384; --success-soft:#173327; --warning:#E3A94A;
+  --warning-soft:#3A2E15; --danger:#FF6B7D; --danger-soft:#3A1E24;
+  --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+}
+
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:var(--font-body);
+  font-size:15px;
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+  min-height:100vh;
+}
+h1,h2,h3,h4{font-family:var(--font-display);font-weight:600;letter-spacing:.01em;margin:0;}
+p{margin:0;}
+a{color:inherit;}
+button{font-family:inherit;}
+img{max-width:100%;display:block;}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px;}
+::-webkit-scrollbar{width:10px;height:10px;}
+::-webkit-scrollbar-thumb{background:var(--line);border-radius:8px;}
+
+.hidden{display:none !important;}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);}
+
+/* ============ BUTTONS ============ */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  font-family:var(--font-body);font-weight:600;font-size:14.5px;
+  padding:11px 18px;border-radius:var(--radius-s);border:1px solid transparent;
+  cursor:pointer;transition:transform .08s ease, background .15s ease, border-color .15s ease;
+  white-space:nowrap;min-height:44px;
+}
+.btn:active{transform:scale(.98);}
+.btn-primary{background:var(--accent);color:var(--accent-ink);}
+.btn-primary:hover{filter:brightness(1.06);}
+.btn-dark{background:var(--ink);color:var(--paper);}
+.btn-outline{background:transparent;border-color:var(--line);color:var(--ink);}
+.btn-outline:hover{border-color:var(--muted-2);}
+.btn-ghost{background:transparent;color:var(--muted);}
+.btn-ghost:hover{color:var(--ink);}
+.btn-danger{background:var(--danger-soft);color:var(--danger);}
+.btn-danger:hover{filter:brightness(1.05);}
+.btn-sm{padding:7px 12px;font-size:13px;min-height:36px;border-radius:8px;}
+.btn-block{width:100%;}
+.btn-icon{padding:9px;min-width:40px;min-height:40px;}
+
+/* ============ LAYOUT ============ */
+#app{min-height:100vh;}
+.app-shell{display:flex;min-height:100vh;}
+.sidebar{
+  width:236px;flex:0 0 236px;background:var(--ink);color:var(--paper);
+  display:flex;flex-direction:column;padding:22px 16px;position:fixed;top:0;left:0;bottom:0;
+  transform:translateX(0);transition:transform .25s ease;z-index:60;
+}
+.brand{display:flex;align-items:center;gap:10px;padding:0 6px 22px;border-bottom:1px solid rgba(255,255,255,.1);margin-bottom:18px;}
+.brand-mark{width:34px;height:34px;border-radius:9px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:700;font-size:15px;color:var(--accent-ink);flex:0 0 auto;}
+.brand-text{font-family:var(--font-display);font-weight:600;font-size:17.5px;letter-spacing:.02em;line-height:1.15;}
+.brand-text small{display:block;font-family:var(--font-body);font-weight:500;font-size:10.5px;letter-spacing:.08em;color:rgba(245,244,239,.55);margin-top:1px;}
+.nav{display:flex;flex-direction:column;gap:3px;flex:1;}
+.nav-link{
+  display:flex;align-items:center;gap:11px;padding:11px 12px;border-radius:10px;
+  color:rgba(245,244,239,.72);text-decoration:none;font-weight:500;font-size:14.5px;cursor:pointer;
+  border:1px solid transparent;
+}
+.nav-link svg{flex:0 0 auto;opacity:.9;}
+.nav-link:hover{background:rgba(255,255,255,.06);color:#fff;}
+.nav-link.active{background:rgba(230,57,70,.16);color:#fff;border-color:rgba(230,57,70,.35);}
+.nav-foot{border-top:1px solid rgba(255,255,255,.1);padding-top:14px;margin-top:10px;display:flex;flex-direction:column;gap:8px;}
+.nav-user{display:flex;align-items:center;gap:9px;padding:0 4px;color:rgba(245,244,239,.65);font-size:13px;}
+.nav-user b{color:#fff;font-weight:600;}
+
+.main{flex:1;margin-left:236px;display:flex;flex-direction:column;min-width:0;}
+.topbar{
+  display:none;align-items:center;justify-content:space-between;gap:10px;
+  padding:14px 16px;background:var(--surface);border-bottom:1px solid var(--line);
+  position:sticky;top:0;z-index:40;
+}
+.topbar-title{font-family:var(--font-display);font-size:18px;font-weight:600;}
+.hamburger{background:none;border:1px solid var(--line);border-radius:9px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--ink);}
+.content{padding:26px 30px 90px;flex:1;width:100%;max-width:1180px;}
+.overlay{position:fixed;inset:0;background:rgba(10,10,10,.45);z-index:55;opacity:0;pointer-events:none;transition:opacity .2s ease;}
+.overlay.show{opacity:1;pointer-events:auto;}
+
+@media (max-width:940px){
+  .sidebar{transform:translateX(-100%);}
+  .sidebar.open{transform:translateX(0);}
+  .main{margin-left:0;}
+  .topbar{display:flex;}
+  .content{padding:18px 16px 96px;}
+}
+
+/* ============ PAGE HEADER ============ */
+.page-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:22px;flex-wrap:wrap;}
+.page-head h1{font-size:26px;}
+.page-head .sub{color:var(--muted);font-size:14px;margin-top:4px;}
+.head-actions{display:flex;gap:10px;flex-wrap:wrap;}
+
+/* ============ CARDS ============ */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-m);padding:20px;}
+.section-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-m);padding:20px;margin-bottom:16px;}
+
+/* ============ STAT GRID ============ */
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-bottom:26px;}
+.stat-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-m);padding:18px 18px 16px;position:relative;overflow:hidden;}
+.stat-card .stat-label{font-size:12.5px;color:var(--muted);font-weight:600;letter-spacing:.02em;}
+.stat-card .stat-value{font-family:var(--font-display);font-size:34px;font-weight:600;margin-top:6px;line-height:1;}
+.stat-card .stat-bar{position:absolute;left:0;top:0;bottom:0;width:4px;}
+.stat-card.c-total .stat-bar{background:var(--ink-2);}
+.stat-card.c-active .stat-bar{background:var(--success);}
+.stat-card.c-expired .stat-bar{background:var(--danger);}
+.stat-card.c-new .stat-bar{background:var(--focus);}
+.stat-card.c-checkin .stat-bar{background:var(--accent);}
+.stat-card.c-dues .stat-bar{background:var(--warning);}
+
+.dash-actions{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:24px;}
+.search-inline{flex:1 1 320px;display:flex;gap:8px;}
+.search-inline input{flex:1;}
+
+/* ============ FORMS ============ */
+.field{margin-bottom:16px;}
+.field label{display:block;font-size:13.5px;font-weight:600;margin-bottom:6px;color:var(--ink-2);}
+.field label .req{color:var(--accent);margin-left:2px;}
+.field .hint{font-size:12px;color:var(--muted);margin-top:5px;}
+.field .err{font-size:12.5px;color:var(--danger);margin-top:5px;display:none;}
+.field.has-error .err{display:block;}
+.field.has-error input, .field.has-error select, .field.has-error textarea{border-color:var(--danger) !important;}
+input[type=text],input[type=tel],input[type=email],input[type=number],input[type=date],select,textarea{
+  width:100%;padding:12px 13px;border-radius:var(--radius-s);border:1.5px solid var(--line);
+  background:var(--paper);color:var(--ink);font-size:15px;font-family:var(--font-body);min-height:46px;
+}
+textarea{min-height:80px;resize:vertical;}
+input:focus,select:focus,textarea:focus{border-color:var(--focus);}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+@media (max-width:560px){.field-row{grid-template-columns:1fr;}}
+.field-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
+@media (max-width:680px){.field-row-3{grid-template-columns:1fr;}}
+.checkbox-row{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--ink-2);margin-top:-6px;margin-bottom:14px;}
+.checkbox-row input{width:18px;height:18px;min-height:auto;}
+
+.segmented{display:flex;gap:8px;flex-wrap:wrap;}
+.segmented button{
+  padding:10px 16px;border-radius:999px;border:1.5px solid var(--line);background:var(--surface);
+  color:var(--ink-2);font-weight:600;font-size:13.5px;cursor:pointer;min-height:42px;
+}
+.segmented button.active{background:var(--ink);color:var(--paper);border-color:var(--ink);}
+
+/* ============ PHOTO UPLOAD ============ */
+.photo-box{display:flex;align-items:center;gap:16px;margin-bottom:18px;flex-wrap:wrap;}
+.photo-preview{
+  width:88px;height:88px;border-radius:50%;background:var(--paper);border:1.5px dashed var(--line);
+  display:flex;align-items:center;justify-content:center;overflow:hidden;flex:0 0 auto;color:var(--muted-2);
+}
+.photo-preview img{width:100%;height:100%;object-fit:cover;}
+.photo-actions{display:flex;gap:8px;flex-wrap:wrap;}
+
+/* ============ SECTION TITLES ============ */
+.form-section-title{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+.form-section-title .idx{width:26px;height:26px;border-radius:7px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;font-family:var(--font-display);}
+.form-section-title h3{font-size:16.5px;}
+
+/* ============ BADGES ============ */
+.badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700;letter-spacing:.01em;}
+.badge-active{background:var(--success-soft);color:var(--success);}
+.badge-expired{background:var(--danger-soft);color:var(--danger);}
+.badge-dues{background:var(--warning-soft);color:var(--warning);}
+.badge-archived{background:var(--line);color:var(--muted);}
+
+/* ============ MEMBER LIST ============ */
+.filter-bar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px;align-items:center;}
+.filter-bar input[type=text]{flex:1 1 260px;}
+.filter-bar select{flex:0 0 auto;width:auto;}
+.member-list{display:flex;flex-direction:column;gap:2px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-m);overflow:hidden;}
+.member-row{display:flex;align-items:center;gap:14px;padding:14px 16px;border-bottom:1px solid var(--line);flex-wrap:wrap;cursor:pointer;transition:background .12s;}
+.member-row:last-child{border-bottom:none;}
+.member-row:hover{background:var(--paper);}
+.avatar{width:44px;height:44px;border-radius:50%;object-fit:cover;background:var(--paper);border:1px solid var(--line);flex:0 0 auto;display:flex;align-items:center;justify-content:center;color:var(--muted-2);font-family:var(--font-display);font-weight:600;}
+.member-row-main{flex:1 1 160px;min-width:150px;}
+.member-row-top{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;}
+.member-name{font-weight:600;font-size:15px;}
+.member-idtag{font-size:12px;color:var(--muted);font-family:var(--font-display);letter-spacing:.02em;}
+.member-row-sub{font-size:12.5px;color:var(--muted);margin-top:2px;}
+.member-row-status{flex:0 0 auto;display:flex;flex-direction:column;align-items:flex-end;gap:4px;}
+.member-row-actions{flex:0 0 auto;display:flex;gap:6px;margin-left:auto;}
+.empty-state{padding:50px 20px;text-align:center;color:var(--muted);}
+.empty-state .em-icon{font-size:38px;margin-bottom:10px;}
+.empty-state h3{color:var(--ink);margin-bottom:6px;font-size:17px;}
+
+/* ============ PROFILE ============ */
+.profile-head{display:flex;gap:18px;align-items:center;flex-wrap:wrap;margin-bottom:22px;}
+.profile-photo{width:84px;height:84px;border-radius:50%;object-fit:cover;border:2px solid var(--line);background:var(--paper);}
+.profile-name-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.profile-meta{color:var(--muted);font-size:13.5px;margin-top:3px;}
+.info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;}
+.info-item{display:flex;flex-direction:column;gap:2px;padding:4px 0;}
+.info-item .k{font-size:12px;color:var(--muted);font-weight:600;letter-spacing:.02em;}
+.info-item .v{font-size:14.5px;color:var(--ink);}
+.divider{height:1px;background:var(--line);margin:18px 0;}
+
+/* ============ MODAL ============ */
+.modal-backdrop{position:fixed;inset:0;background:rgba(10,10,10,.5);display:flex;align-items:center;justify-content:center;z-index:100;padding:16px;opacity:0;pointer-events:none;transition:opacity .18s ease;}
+.modal-backdrop.show{opacity:1;pointer-events:auto;}
+.modal{background:var(--surface);border-radius:var(--radius-l);max-width:440px;width:100%;padding:26px;box-shadow:var(--shadow);transform:translateY(8px);transition:transform .18s ease;}
+.modal-backdrop.show .modal{transform:translateY(0);}
+.modal h3{font-size:19px;margin-bottom:10px;}
+.modal p{color:var(--muted);font-size:14.5px;margin-bottom:20px;}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;}
+.modal-camera video{width:100%;border-radius:12px;background:#000;}
+.modal-camera canvas{display:none;}
+
+/* ============ TOAST ============ */
+.toast-wrap{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:200;display:flex;flex-direction:column;gap:8px;align-items:center;width:100%;padding:0 16px;}
+.toast{background:var(--ink);color:var(--paper);padding:12px 18px;border-radius:10px;font-size:14px;font-weight:500;box-shadow:var(--shadow);display:flex;align-items:center;gap:10px;max-width:420px;animation:toastIn .2s ease;}
+.toast.success{background:var(--success);color:#fff;}
+.toast.error{background:var(--danger);color:#fff;}
+@keyframes toastIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+
+/* ============ FLASH BANNER ============ */
+.flash{display:flex;align-items:center;gap:10px;background:var(--success-soft);color:var(--success);border:1px solid var(--success);border-radius:var(--radius-s);padding:13px 16px;margin-bottom:20px;font-weight:600;font-size:14px;}
+.flash .idpill{background:var(--surface);padding:3px 9px;border-radius:6px;font-family:var(--font-display);}
+
+/* ============ LOGIN ============ */
+.login-wrap{min-height:100vh;display:flex;}
+.login-brand{flex:1 1 46%;background:var(--ink);color:var(--paper);display:flex;flex-direction:column;justify-content:center;padding:60px;position:relative;overflow:hidden;}
+.login-brand::before{content:"";position:absolute;inset:0;background:
+  repeating-linear-gradient(115deg, rgba(230,57,70,.10) 0px, rgba(230,57,70,.10) 2px, transparent 2px, transparent 46px);
+  pointer-events:none;}
+.login-brand-mark{width:52px;height:52px;border-radius:13px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:700;font-size:22px;color:var(--accent-ink);margin-bottom:26px;}
+.login-brand h1{font-size:40px;line-height:1.08;max-width:420px;}
+.login-brand p{margin-top:16px;color:rgba(245,244,239,.62);max-width:360px;font-size:15px;}
+.login-form-side{flex:1 1 54%;display:flex;align-items:center;justify-content:center;padding:30px;}
+.login-form-box{width:100%;max-width:360px;}
+.login-form-box h2{font-size:23px;margin-bottom:6px;}
+.login-form-box .sub{color:var(--muted);font-size:14px;margin-bottom:26px;}
+.pw-wrap{position:relative;}
+.pw-toggle{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;font-weight:600;padding:6px;}
+.login-hint{margin-top:18px;padding:12px 14px;background:var(--paper);border-radius:10px;font-size:12.5px;color:var(--muted);border:1px dashed var(--line);}
+.login-error{background:var(--danger-soft);color:var(--danger);padding:10px 13px;border-radius:9px;font-size:13.5px;font-weight:600;margin-bottom:16px;display:none;}
+.login-error.show{display:block;}
+@media (max-width:860px){
+  .login-wrap{flex-direction:column;}
+  .login-brand{padding:36px 26px;flex:0 0 auto;}
+  .login-brand h1{font-size:28px;}
+  .login-brand p{display:none;}
+  .login-form-side{padding:26px;}
+}
+
+/* ============ FAB ============ */
+.fab{position:fixed;right:20px;bottom:24px;width:56px;height:56px;border-radius:50%;background:var(--accent);color:var(--accent-ink);border:none;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow);cursor:pointer;z-index:45;}
+@media (min-width:941px){.fab{display:none;}}
+
+/* ============ STICKY SAVE BAR ============ */
+.save-bar{position:sticky;bottom:0;background:var(--surface);border-top:1px solid var(--line);padding:14px 4px;display:flex;gap:10px;justify-content:flex-end;margin-top:6px;flex-wrap:wrap;}
+@media (max-width:680px){.save-bar{position:fixed;left:0;right:0;bottom:0;padding:12px 16px;z-index:50;box-shadow:0 -6px 18px rgba(0,0,0,.06);} .save-bar .btn{flex:1;}}
+
+/* util */
+.text-muted{color:var(--muted);}
+.mt-0{margin-top:0;}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="toastWrap" class="toast-wrap"></div>
+
+<script>
+(function(){
+"use strict";
+
+/* =========================================================
+   STORAGE KEYS & SCHEMA NOTES
+   ---------------------------------------------------------
+   lyf_members    : Member[]        (core member records)
+   lyf_attendance : AttendanceRow[] (check-in log)
+   lyf_seq        : number          (member id counter)
+   lyf_credentials: {username, passwordHash}
+   lyf_session    : {user, expiresAt}
+   lyf_login_meta : {attempts, lockUntil}
+
+   Member record is intentionally self-contained but namespaced so
+   that future modules (membership plans, payments, detailed
+   attendance) can be added as separate stores keyed by member.id
+   without touching this structure:
+     member.membership = { planId:null, joinDate, validUntil, dues }
+     -> later: lyf_plans[planId], lyf_payments (filtered by memberId)
+     -> lyf_attendance already stores memberId + date + time
+   ========================================================= */
+
+const DB = {
+  members(){ return JSON.parse(localStorage.getItem('lyf_members') || '[]'); },
+  saveMembers(list){ localStorage.setItem('lyf_members', JSON.stringify(list)); },
+  attendance(){ return JSON.parse(localStorage.getItem('lyf_attendance') || '[]'); },
+  saveAttendance(list){ localStorage.setItem('lyf_attendance', JSON.stringify(list)); },
+  nextSeq(){
+    let n = parseInt(localStorage.getItem('lyf_seq') || '0', 10) + 1;
+    localStorage.setItem('lyf_seq', String(n));
+    return n;
+  },
+  peekSeq(){ return parseInt(localStorage.getItem('lyf_seq') || '0', 10) + 1; },
+  creds(){ return JSON.parse(localStorage.getItem('lyf_credentials') || 'null'); },
+  saveCreds(c){ localStorage.setItem('lyf_credentials', JSON.stringify(c)); },
+  session(){ return JSON.parse(localStorage.getItem('lyf_session') || 'null'); },
+  saveSession(s){ localStorage.setItem('lyf_session', JSON.stringify(s)); },
+  clearSession(){ localStorage.removeItem('lyf_session'); },
+  loginMeta(){ return JSON.parse(localStorage.getItem('lyf_login_meta') || '{"attempts":0,"lockUntil":0}'); },
+  saveLoginMeta(m){ localStorage.setItem('lyf_login_meta', JSON.stringify(m)); }
+};
+
+/* =========================================================
+   OPTIONAL GOOGLE SHEET SYNC
+   ---------------------------------------------------------
+   If a Google Apps Script Web App URL is configured (Sidebar >
+   Sheet sync), every save also pushes the record to a Google
+   Sheet, and the app pulls the full list on load / manual sync.
+   The Sheet is the shared source of truth once connected; this
+   browser's storage becomes an offline cache. Photos stay local
+   only (spreadsheet cells can't hold them). This will only reach
+   Google's servers once the app is hosted outside this preview.
+   ========================================================= */
+const SHEET_URL_KEY = 'lyf_sheet_url';
+function getSheetUrl(){ return (localStorage.getItem(SHEET_URL_KEY) || '').trim(); }
+function setSheetUrl(u){ if(u) localStorage.setItem(SHEET_URL_KEY, u); else localStorage.removeItem(SHEET_URL_KEY); }
+let lastSyncAt = localStorage.getItem('lyf_last_sync') || null;
+function setLastSync(ts){ lastSyncAt = ts; localStorage.setItem('lyf_last_sync', ts); }
+
+function memberToRow(m){
+  return {
+    id:m.id, name:m.name, gender:m.gender, dob:m.dob, bloodGroup:m.bloodGroup,
+    mobile:m.mobile, whatsapp:m.whatsapp, height:m.height, weight:m.weight,
+    maritalStatus:m.maritalStatus, spouseOrParent:m.spouseOrParent,
+    address:m.address, pin:m.pin, email:m.email, profession:m.profession, reference:m.reference,
+    ecName:m.emergency.name, ecRelationship:m.emergency.relationship, ecMobile:m.emergency.mobile,
+    docName:m.emergency.doctorName, docMobile:m.emergency.doctorMobile,
+    joinDate:m.membership.joinDate, validUntil:m.membership.validUntil || '', dues:m.membership.dues || 0,
+    deleted: m.meta.deleted ? 'TRUE' : 'FALSE',
+    createdAt:m.meta.createdAt, createdBy:m.meta.createdBy, updatedAt:m.meta.updatedAt, updatedBy:m.meta.updatedBy
+  };
+}
+function rowToMember(r, existingPhoto){
+  return {
+    id:r.id, name:r.name, gender:r.gender, dob:r.dob, bloodGroup:r.bloodGroup,
+    mobile:String(r.mobile||''), whatsapp:String(r.whatsapp||''),
+    height:r.height, weight:r.weight, maritalStatus:r.maritalStatus, spouseOrParent:r.spouseOrParent,
+    address:r.address, pin:String(r.pin||''), email:r.email, profession:r.profession, reference:r.reference,
+    photo: existingPhoto || null,
+    emergency:{ name:r.ecName, relationship:r.ecRelationship, mobile:String(r.ecMobile||''), doctorName:r.docName, doctorMobile:String(r.docMobile||'') },
+    membership:{ planId:null, joinDate:r.joinDate, validUntil: r.validUntil || null, dues: Number(r.dues||0) },
+    meta:{ createdAt:r.createdAt, createdBy:r.createdBy, updatedAt:r.updatedAt, updatedBy:r.updatedBy, deleted:String(r.deleted).toUpperCase()==='TRUE', deletedAt:null }
+  };
+}
+async function pushMember(m){
+  const url = getSheetUrl(); if(!url) return;
+  try{
+    await fetch(url, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify({action:'saveMember', member: memberToRow(m)})});
+  }catch(err){ console.warn('Sheet sync push failed', err); }
+}
+async function pushAttendance(entry){
+  const url = getSheetUrl(); if(!url) return;
+  try{
+    await fetch(url, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify({action:'checkin', entry})});
+  }catch(err){ console.warn('Sheet sync push failed', err); }
+}
+async function pullFromSheet(silent){
+  const url = getSheetUrl(); if(!url) return false;
+  try{
+    const res = await fetch(url + (url.includes('?') ? '&' : '?') + 'action=list');
+    const data = await res.json();
+    const photoMap = {};
+    DB.members().forEach(m=>{ photoMap[m.id] = m.photo; });
+    const members = (data.members||[]).map(r=> rowToMember(r, photoMap[r.id]));
+    DB.saveMembers(members);
+    DB.saveAttendance((data.attendance||[]).map(a=>({id:a.id||uid(), memberId:a.memberId, date:a.date, time:a.time})));
+    setLastSync(new Date().toISOString());
+    return true;
+  }catch(err){
+    if(!silent) toast('Could not reach the Google Sheet — showing the offline copy.', 'error');
+    return false;
+  }
+}
+
+/* ============ UTILITIES ============ */
+function uid(){ return 'x'+Math.random().toString(36).slice(2,10); }
+function esc(s){
+  if(s===undefined||s===null) return '';
+  return String(s).replace(/[&<>"']/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+function fmtDate(d){
+  if(!d) return '—';
+  const dt = new Date(d+'T00:00:00');
+  if(isNaN(dt)) return '—';
+  return dt.toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'});
+}
+function fmtDateTime(ts){
+  const dt = new Date(ts);
+  return dt.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}) + ' · ' + dt.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+}
+function calcAge(dob){
+  if(!dob) return null;
+  const b = new Date(dob+'T00:00:00'); if(isNaN(b)) return null;
+  const t = new Date();
+  let age = t.getFullYear() - b.getFullYear();
+  const m = t.getMonth() - b.getMonth();
+  if(m < 0 || (m===0 && t.getDate() < b.getDate())) age--;
+  return age >= 0 ? age : null;
+}
+function validMobile(v){ return /^[6-9]\d{9}$/.test((v||'').trim()); }
+function validEmail(v){ if(!v) return true; return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim()); }
+function validPin(v){ if(!v) return true; return /^\d{6}$/.test((v||'').trim()); }
+function memberIdFmt(n){ return 'LYF-' + String(n).padStart(4,'0'); }
+function money(n){ return '₹' + Number(n||0).toLocaleString('en-IN'); }
+
+function membershipStatus(m){
+  const vu = m.membership && m.membership.validUntil;
+  if(!vu) return 'active';
+  return vu >= todayStr() ? 'active' : 'expired';
+}
+
+function toast(msg, type){
+  const wrap = document.getElementById('toastWrap');
+  const el = document.createElement('div');
+  el.className = 'toast ' + (type||'');
+  el.textContent = msg;
+  wrap.appendChild(el);
+  setTimeout(()=>{ el.style.opacity='0'; el.style.transition='opacity .25s'; setTimeout(()=>el.remove(),260); }, 2600);
+}
+
+function setFlash(text){ sessionStorage.setItem('lyf_flash', text); }
+function popFlash(){ const f = sessionStorage.getItem('lyf_flash'); sessionStorage.removeItem('lyf_flash'); return f; }
+
+async function sha256(str){
+  const enc = new TextEncoder().encode(str);
+  const buf = await crypto.subtle.digest('SHA-256', enc);
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+/* ============ AUTH ============ */
+const DEFAULT_USER = 'admin';
+const DEFAULT_PASS = 'Lyf@2026';
+
+async function seedCreds(){
+  if(!DB.creds()){
+    const hash = await sha256(DEFAULT_PASS);
+    DB.saveCreds({username: DEFAULT_USER, passwordHash: hash, isDefault:true});
+  }
+}
+function isLoggedIn(){
+  const s = DB.session();
+  if(!s) return false;
+  if(Date.now() > s.expiresAt){ DB.clearSession(); return false; }
+  return true;
+}
+function currentUser(){
+  const s = DB.session();
+  return s ? s.user : 'CEO';
+}
+async function attemptLogin(username, password){
+  const meta = DB.loginMeta();
+  if(meta.lockUntil && Date.now() < meta.lockUntil){
+    const mins = Math.ceil((meta.lockUntil - Date.now())/60000);
+    return {ok:false, message:'Too many attempts. Try again in ' + mins + ' minute' + (mins===1?'':'s') + '.'};
+  }
+  const creds = DB.creds();
+  const hash = await sha256(password);
+  if(creds && username.trim().toLowerCase() === creds.username.toLowerCase() && hash === creds.passwordHash){
+    DB.saveLoginMeta({attempts:0, lockUntil:0});
+    DB.saveSession({user: creds.username, expiresAt: Date.now() + 8*60*60*1000});
+    return {ok:true};
+  }
+  const attempts = (meta.attempts||0) + 1;
+  if(attempts >= 5){
+    DB.saveLoginMeta({attempts:0, lockUntil: Date.now() + 5*60*1000});
+    return {ok:false, message:'Too many failed attempts. Locked for 5 minutes.'};
+  }
+  DB.saveLoginMeta({attempts, lockUntil:0});
+  return {ok:false, message:'Incorrect username or password (' + (5-attempts) + ' attempt' + ((5-attempts)===1?'':'s') + ' left).'};
+}
+function logout(){ DB.clearSession(); location.hash = '#/login'; render(); }
+
+/* ============ ROUTER ============ */
+function parseHash(){
+  const raw = location.hash.replace(/^#/, '') || '/login';
+  const [path, qs] = raw.split('?');
+  const parts = path.split('/').filter(Boolean);
+  const query = {};
+  if(qs) qs.split('&').forEach(p=>{ const [k,v] = p.split('='); query[decodeURIComponent(k)] = decodeURIComponent(v||''); });
+  return {parts, query};
+}
+window.addEventListener('hashchange', render);
+window.addEventListener('DOMContentLoaded', async ()=>{ await seedCreds(); if(getSheetUrl()) await pullFromSheet(true); render(); });
+
+function go(hash){ location.hash = hash; }
+
+/* ============ SHELL ============ */
+function shell(activeKey, title, innerHtml){
+  const app = document.getElementById('app');
+  app.innerHTML = `
+    <div class="overlay" id="navOverlay"></div>
+    <div class="app-shell">
+      <aside class="sidebar" id="sidebar">
+        <div class="brand">
+          <div class="brand-mark">LF</div>
+          <div class="brand-text">LYF FITNESS<small>MEMBER MANAGER</small></div>
+        </div>
+        <nav class="nav">
+          ${navLink('dashboard','#/dashboard','Dashboard', iconGrid())}
+          ${navLink('members','#/members','Members', iconUsers())}
+          ${navLink('add','#/members/new','Add Member', iconPlus())}
+        </nav>
+        <div class="nav-foot">
+          <div class="nav-user">${iconUser()} Signed in as <b>&nbsp;${esc(currentUser())}</b></div>
+          <div style="font-size:11.5px;color:rgba(245,244,239,.5);padding:0 4px;">${getSheetUrl() ? ('☁ Sheet sync on · ' + (lastSyncAt ? 'synced ' + fmtDateTime(lastSyncAt) : 'not yet synced')) : '☁ Sheet sync off — this browser only'}</div>
+          <button class="btn btn-outline btn-sm" id="sheetSyncBtn" style="justify-content:flex-start;color:var(--paper);border-color:rgba(255,255,255,.18);">Sheet sync</button>
+          <button class="btn btn-outline btn-sm" id="changePwBtn" style="justify-content:flex-start;color:var(--paper);border-color:rgba(255,255,255,.18);">Change password</button>
+          <button class="btn btn-ghost btn-sm" id="logoutBtn" style="justify-content:flex-start;color:rgba(245,244,239,.65);">Log out</button>
+        </div>
+      </aside>
+      <div class="main">
+        <div class="topbar">
+          <button class="hamburger" id="hamburgerBtn" aria-label="Open menu">${iconMenu()}</button>
+          <div class="topbar-title">${esc(title)}</div>
+          <div style="width:40px"></div>
+        </div>
+        <div class="content">${innerHtml}</div>
+      </div>
+    </div>
+  `;
+  function navLink(key, href, label, icon){
+    return `<a class="nav-link ${activeKey===key?'active':''}" data-href="${href}">${icon} ${label}</a>`;
+  }
+  document.querySelectorAll('.nav-link').forEach(el=>{
+    el.addEventListener('click', ()=>{ go(el.dataset.href); closeDrawer(); });
+  });
+  document.getElementById('logoutBtn').addEventListener('click', ()=>{
+    confirmDialog('Log out?', 'You will need your password to sign back in.', 'Log out', ()=>logout());
+  });
+  document.getElementById('sheetSyncBtn').addEventListener('click', openSheetSync);
+  document.getElementById('changePwBtn').addEventListener('click', openChangePassword);
+  document.getElementById('hamburgerBtn').addEventListener('click', openDrawer);
+  document.getElementById('navOverlay').addEventListener('click', closeDrawer);
+}
+function openDrawer(){ document.getElementById('sidebar').classList.add('open'); document.getElementById('navOverlay').classList.add('show'); }
+function closeDrawer(){ const sb=document.getElementById('sidebar'); const ov=document.getElementById('navOverlay'); if(sb) sb.classList.remove('open'); if(ov) ov.classList.remove('show'); }
+
+/* ============ ICONS (inline svg, currentColor) ============ */
+function iconGrid(){ return `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/></svg>`; }
+function iconUsers(){ return `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`; }
+function iconPlus(){ return `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`; }
+function iconUser(){ return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>`; }
+function iconMenu(){ return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>`; }
+function iconSearch(){ return `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>`; }
+function iconCheck(){ return `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`; }
+function iconChevron(){ return `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>`; }
+function iconChevronLeft(){ return `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>`; }
+function iconCamera(){ return `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>`; }
+
+/* ============ MODAL / CONFIRM ============ */
+function confirmDialog(title, body, okLabel, onOk, danger){
+  const back = document.createElement('div');
+  back.className = 'modal-backdrop';
+  back.innerHTML = `
+    <div class="modal">
+      <h3>${esc(title)}</h3>
+      <p>${body}</p>
+      <div class="modal-actions">
+        <button class="btn btn-outline" id="cdCancel">Cancel</button>
+        <button class="btn ${danger?'btn-danger':'btn-primary'}" id="cdOk">${esc(okLabel)}</button>
+      </div>
+    </div>`;
+  document.body.appendChild(back);
+  requestAnimationFrame(()=>back.classList.add('show'));
+  function close(){ back.classList.remove('show'); setTimeout(()=>back.remove(), 180); }
+  back.querySelector('#cdCancel').addEventListener('click', close);
+  back.addEventListener('click', (e)=>{ if(e.target===back) close(); });
+  back.querySelector('#cdOk').addEventListener('click', ()=>{ close(); onOk(); });
+}
+
+function openSheetSync(){
+  const back = document.createElement('div');
+  back.className = 'modal-backdrop';
+  const currentUrl = getSheetUrl();
+  back.innerHTML = `
+    <div class="modal">
+      <h3>Google Sheet sync</h3>
+      <p>Paste the Web App URL from your Apps Script deployment to share members across every device instead of keeping them only in this browser. This only works once the app is hosted outside this Claude preview.</p>
+      <div class="field"><label>Apps Script Web App URL</label><input type="text" id="sheetUrlInput" placeholder="https://script.google.com/macros/s/.../exec" value="${esc(currentUrl)}"></div>
+      <div class="hint" id="syncStatusText" style="margin-bottom:14px;">${currentUrl ? ('Connected. Last synced: ' + (lastSyncAt ? fmtDateTime(lastSyncAt) : 'not yet')) : 'Not connected — members are stored only in this browser.'}</div>
+      <div class="modal-actions" style="justify-content:space-between;">
+        <button class="btn btn-outline" id="syncClose">Close</button>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-outline" id="syncNowBtn">Sync now</button>
+          <button class="btn btn-primary" id="syncSaveBtn">Save &amp; connect</button>
+        </div>
+      </div>
+    </div>`;
+  document.body.appendChild(back);
+  requestAnimationFrame(()=>back.classList.add('show'));
+  function close(){ back.classList.remove('show'); setTimeout(()=>back.remove(),180); }
+  back.querySelector('#syncClose').addEventListener('click', close);
+  back.addEventListener('click', (e)=>{ if(e.target===back) close(); });
+  back.querySelector('#syncSaveBtn').addEventListener('click', async ()=>{
+    const u = back.querySelector('#sheetUrlInput').value.trim();
+    const statusEl = back.querySelector('#syncStatusText');
+    if(!u){
+      setSheetUrl('');
+      toast('Sheet sync turned off — using this browser only', 'success');
+      close();
+      return;
+    }
+    setSheetUrl(u);
+    statusEl.textContent = 'Connecting…';
+    const ok = await pullFromSheet(true);
+    if(ok){
+      statusEl.textContent = 'Connected. Last synced: ' + fmtDateTime(lastSyncAt);
+      toast('Connected to Google Sheet', 'success');
+      close();
+      render();
+    } else {
+      statusEl.textContent = 'Could not reach that URL — check it was deployed with "Anyone" access, and that this page is hosted outside the Claude preview.';
+    }
+  });
+  back.querySelector('#syncNowBtn').addEventListener('click', async ()=>{
+    if(!getSheetUrl()){ toast('Add a Sheet URL first', 'error'); return; }
+    const statusEl = back.querySelector('#syncStatusText');
+    statusEl.textContent = 'Syncing…';
+    const ok = await pullFromSheet(true);
+    if(ok){ statusEl.textContent = 'Connected. Last synced: ' + fmtDateTime(lastSyncAt); toast('Synced with Google Sheet', 'success'); render(); }
+    else { statusEl.textContent = 'Sync failed — showing the offline copy.'; }
+  });
+}
+
+function openChangePassword(){
+  const back = document.createElement('div');
+  back.className = 'modal-backdrop';
+  back.innerHTML = `
+    <div class="modal">
+      <h3>Change password</h3>
+      <p>Choose a password only the CEO / admin knows.</p>
+      <div class="field"><label>Current password</label><input type="password" id="cpCurrent"></div>
+      <div class="field"><label>New password</label><input type="password" id="cpNew"></div>
+      <div class="field mt-0"><label>Confirm new password</label><input type="password" id="cpConfirm"></div>
+      <div class="login-error" id="cpErr"></div>
+      <div class="modal-actions">
+        <button class="btn btn-outline" id="cpCancel">Cancel</button>
+        <button class="btn btn-primary" id="cpSave">Save password</button>
+      </div>
+    </div>`;
+  document.body.appendChild(back);
+  requestAnimationFrame(()=>back.classList.add('show'));
+  function close(){ back.classList.remove('show'); setTimeout(()=>back.remove(),180); }
+  back.querySelector('#cpCancel').addEventListener('click', close);
+  back.addEventListener('click', (e)=>{ if(e.target===back) close(); });
+  back.querySelector('#cpSave').addEventListener('click', async ()=>{
+    const cur = back.querySelector('#cpCurrent').value;
+    const nw = back.querySelector('#cpNew').value;
+    const cf = back.querySelector('#cpConfirm').value;
+    const errEl = back.querySelector('#cpErr');
+    const creds = DB.creds();
+    const curHash = await sha256(cur);
+    if(curHash !== creds.passwordHash){ errEl.textContent='Current password is incorrect.'; errEl.classList.add('show'); return; }
+    if(nw.length < 6){ errEl.textContent='New password must be at least 6 characters.'; errEl.classList.add('show'); return; }
+    if(nw !== cf){ errEl.textContent='New passwords do not match.'; errEl.classList.add('show'); return; }
+    DB.saveCreds({username: creds.username, passwordHash: await sha256(nw), isDefault:false});
+    close();
+    toast('Password updated', 'success');
+  });
+}
+
+/* ============ CAMERA CAPTURE ============ */
+function openCamera(onCapture){
+  const back = document.createElement('div');
+  back.className = 'modal-backdrop';
+  back.innerHTML = `
+    <div class="modal modal-camera">
+      <h3>Take photo</h3>
+      <p id="camMsg">Allow camera access to capture a member photo.</p>
+      <video id="camVideo" autoplay playsinline muted></video>
+      <canvas id="camCanvas"></canvas>
+      <div class="modal-actions" style="margin-top:16px;">
+        <button class="btn btn-outline" id="camCancel">Cancel</button>
+        <button class="btn btn-primary" id="camShot" disabled>Capture</button>
+      </div>
+    </div>`;
+  document.body.appendChild(back);
+  requestAnimationFrame(()=>back.classList.add('show'));
+  let stream = null;
+  function close(){
+    if(stream) stream.getTracks().forEach(t=>t.stop());
+    back.classList.remove('show'); setTimeout(()=>back.remove(),180);
+  }
+  back.querySelector('#camCancel').addEventListener('click', close);
+  back.addEventListener('click', (e)=>{ if(e.target===back) close(); });
+  const video = back.querySelector('#camVideo');
+  const shotBtn = back.querySelector('#camShot');
+  const msg = back.querySelector('#camMsg');
+  navigator.mediaDevices && navigator.mediaDevices.getUserMedia({video:{facingMode:'user'}, audio:false})
+    .then(s=>{ stream = s; video.srcObject = s; shotBtn.disabled = false; msg.textContent = 'Center the face and tap Capture.'; })
+    .catch(()=>{ msg.textContent = 'Camera is not available in this browser. Please use "Upload photo" instead.'; });
+  shotBtn.addEventListener('click', ()=>{
+    const canvas = back.querySelector('#camCanvas');
+    const w = video.videoWidth || 480, h = video.videoHeight || 480;
+    const size = Math.min(w,h);
+    canvas.width = 320; canvas.height = 320;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, (w-size)/2, (h-size)/2, size, size, 0, 0, 320, 320);
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+    onCapture(dataUrl);
+    close();
+  });
+}
+
+function compressImageFile(file, cb){
+  const reader = new FileReader();
+  reader.onload = function(e){
+    const img = new Image();
+    img.onload = function(){
+      const maxDim = 400;
+      let w = img.width, h = img.height;
+      if(w > h && w > maxDim){ h = h*(maxDim/w); w = maxDim; }
+      else if(h > maxDim){ w = w*(maxDim/h); h = maxDim; }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      cb(canvas.toDataURL('image/jpeg', 0.82));
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+/* ============ RENDER: ROOT ============ */
+function render(){
+  const {parts, query} = parseHash();
+  if(!isLoggedIn()){
+    if(parts[0] !== 'login'){ location.hash = '#/login'; return; }
+    return renderLogin();
+  }
+  if(parts[0] === 'login' || parts.length===0){ location.hash = '#/dashboard'; return; }
+  if(parts[0] === 'dashboard') return renderDashboard();
+  if(parts[0] === 'members' && parts[1] === 'new') return renderMemberForm(null);
+  if(parts[0] === 'members' && parts[2] === 'edit') return renderMemberForm(parts[1]);
+  if(parts[0] === 'members' && parts[1]) return renderProfile(parts[1]);
+  if(parts[0] === 'members') return renderMembers(query);
+  location.hash = '#/dashboard';
+}
+
+/* ============ LOGIN VIEW ============ */
+function renderLogin(){
+  const app = document.getElementById('app');
+  const creds = DB.creds();
+  app.innerHTML = `
+  <div class="login-wrap">
+    <div class="login-brand">
+      <div class="login-brand-mark">LF</div>
+      <h1>Run the front desk<br>without the paperwork.</h1>
+      <p>LYF FITNESS Member Manager keeps every member's details, status and dues in one simple, secure place.</p>
+    </div>
+    <div class="login-form-side">
+      <div class="login-form-box">
+        <h2>CEO sign in</h2>
+        <div class="sub">Enter your admin credentials to continue.</div>
+        <div class="login-error" id="loginErr"></div>
+        <form id="loginForm">
+          <div class="field">
+            <label>Username</label>
+            <input type="text" id="loginUser" autocomplete="username" required>
+          </div>
+          <div class="field">
+            <label>Password</label>
+            <div class="pw-wrap">
+              <input type="password" id="loginPass" autocomplete="current-password" required>
+              <button type="button" class="pw-toggle" id="pwToggle">SHOW</button>
+            </div>
+          </div>
+          <button class="btn btn-primary btn-block" type="submit">Sign in</button>
+        </form>
+        ${creds && creds.isDefault ? `<div class="login-hint">First time here? Default login is <b>admin</b> / <b>Lyf@2026</b>. Change it from the sidebar after signing in.</div>` : ''}
+      </div>
+    </div>
+  </div>`;
+  document.getElementById('pwToggle').addEventListener('click', function(){
+    const inp = document.getElementById('loginPass');
+    const showing = inp.type === 'text';
+    inp.type = showing ? 'password' : 'text';
+    this.textContent = showing ? 'SHOW' : 'HIDE';
+  });
+  document.getElementById('loginForm').addEventListener('submit', async function(e){
+    e.preventDefault();
+    const u = document.getElementById('loginUser').value;
+    const p = document.getElementById('loginPass').value;
+    const errEl = document.getElementById('loginErr');
+    const res = await attemptLogin(u, p);
+    if(res.ok){ go('#/dashboard'); render(); }
+    else { errEl.textContent = res.message; errEl.classList.add('show'); }
+  });
+}
+
+/* ============ DASHBOARD ============ */
+function renderDashboard(){
+  const members = DB.members().filter(m=>!m.meta.deleted);
+  const attendance = DB.attendance();
+  const total = members.length;
+  const active = members.filter(m=>membershipStatus(m)==='active').length;
+  const expired = members.filter(m=>membershipStatus(m)==='expired').length;
+  const now = new Date();
+  const newThisMonth = members.filter(m=>{
+    const d = new Date(m.meta.createdAt);
+    return d.getMonth()===now.getMonth() && d.getFullYear()===now.getFullYear();
+  }).length;
+  const today = todayStr();
+  const checkinsToday = attendance.filter(a=>a.date===today).length;
+  const dues = members.reduce((s,m)=> s + Number((m.membership && m.membership.dues) || 0), 0);
+
+  const flash = popFlash();
+  shell('dashboard', 'Dashboard', `
+    ${flash ? `<div class="flash">${iconCheck()} ${flash}</div>` : ''}
+    <div class="page-head">
+      <div>
+        <h1>Dashboard</h1>
+        <div class="sub">Today · ${fmtDate(today)}</div>
+      </div>
+    </div>
+
+    <div class="dash-actions">
+      <button class="btn btn-primary" id="addMemberBtn">${iconPlus()} Add Member</button>
+      <form class="search-inline" id="dashSearchForm">
+        <input type="text" id="dashSearch" placeholder="Search member by name, ID or mobile...">
+        <button class="btn btn-outline" type="submit">${iconSearch()} Search</button>
+      </form>
+    </div>
+
+    <div class="stat-grid">
+      <div class="stat-card c-total"><div class="stat-bar"></div><div class="stat-label">Total members</div><div class="stat-value">${total}</div></div>
+      <div class="stat-card c-active"><div class="stat-bar"></div><div class="stat-label">Active members</div><div class="stat-value">${active}</div></div>
+      <div class="stat-card c-expired"><div class="stat-bar"></div><div class="stat-label">Expired members</div><div class="stat-value">${expired}</div></div>
+      <div class="stat-card c-new"><div class="stat-bar"></div><div class="stat-label">New members (this month)</div><div class="stat-value">${newThisMonth}</div></div>
+      <div class="stat-card c-checkin"><div class="stat-bar"></div><div class="stat-label">Today's check-ins</div><div class="stat-value">${checkinsToday}</div></div>
+      <div class="stat-card c-dues"><div class="stat-bar"></div><div class="stat-label">Outstanding dues</div><div class="stat-value" style="font-size:26px;">${money(dues)}</div></div>
+    </div>
+  `);
+  document.getElementById('addMemberBtn').addEventListener('click', ()=>go('#/members/new'));
+  document.getElementById('dashSearchForm').addEventListener('submit', (e)=>{
+    e.preventDefault();
+    const q = document.getElementById('dashSearch').value.trim();
+    go('#/members' + (q ? ('?q=' + encodeURIComponent(q)) : ''));
+  });
+}
+
+/* ============ MEMBERS LIST ============ */
+function renderMembers(query){
+  const all = DB.members();
+  const q = (query.q || '').trim().toLowerCase();
+  const statusFilter = query.status || 'all';
+  const showArchived = query.archived === '1';
+
+  let list = all.filter(m => showArchived ? m.meta.deleted : !m.meta.deleted);
+  if(q){
+    list = list.filter(m =>
+      m.name.toLowerCase().includes(q) ||
+      m.id.toLowerCase().includes(q) ||
+      (m.mobile||'').includes(q)
+    );
+  }
+  if(statusFilter !== 'all' && !showArchived){
+    list = list.filter(m => membershipStatus(m) === statusFilter);
+  }
+  list.sort((a,b)=> new Date(b.meta.createdAt) - new Date(a.meta.createdAt));
+
+  const rows = list.map(m => {
+    const st = membershipStatus(m);
+    const dues = Number((m.membership && m.membership.dues) || 0);
+    return `
+    <div class="member-row" data-id="${esc(m.id)}">
+      ${m.photo ? `<img class="avatar" src="${m.photo}">` : `<div class="avatar">${esc(initials(m.name))}</div>`}
+      <div class="member-row-main">
+        <div class="member-row-top"><span class="member-name">${esc(m.name)}</span><span class="member-idtag">${esc(m.id)}</span></div>
+        <div class="member-row-sub">${esc(m.mobile)} · Joined ${fmtDate(m.membership.joinDate)}</div>
+      </div>
+      <div class="member-row-status">
+        ${m.meta.deleted ? `<span class="badge badge-archived">Archived</span>` : `<span class="badge ${st==='active'?'badge-active':'badge-expired'}">${st==='active'?'Active':'Expired'}</span>`}
+        ${dues>0 ? `<span class="badge badge-dues">${money(dues)} due</span>` : ''}
+      </div>
+      <div class="member-row-actions">
+        ${!m.meta.deleted ? `<button class="btn btn-outline btn-icon btn-sm" title="Check in today" data-checkin="${esc(m.id)}">${iconCheck()}</button>` : ''}
+        <button class="btn btn-ghost btn-icon btn-sm" data-view="${esc(m.id)}">${iconChevron()}</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  shell('members', 'Members', `
+    <div class="page-head">
+      <div><h1>Members</h1><div class="sub">${list.length} of ${all.filter(m=>!m.meta.deleted).length} member${all.length===1?'':'s'}</div></div>
+      <div class="head-actions">
+        <button class="btn btn-primary" id="addMemberBtn2">${iconPlus()} Add Member</button>
+      </div>
+    </div>
+    <div class="filter-bar">
+      <input type="text" id="listSearch" placeholder="Search by name, member ID or mobile number" value="${esc(query.q||'')}">
+      <select id="statusFilter">
+        <option value="all" ${statusFilter==='all'?'selected':''}>All statuses</option>
+        <option value="active" ${statusFilter==='active'?'selected':''}>Active only</option>
+        <option value="expired" ${statusFilter==='expired'?'selected':''}>Expired only</option>
+      </select>
+      <label class="checkbox-row" style="margin:0;"><input type="checkbox" id="archivedToggle" ${showArchived?'checked':''}> Show archived</label>
+    </div>
+    <div class="member-list">
+      ${rows || `<div class="empty-state"><div class="em-icon">🔍</div><h3>No members found</h3><p>Try a different search or add a new member.</p></div>`}
+    </div>
+  `);
+
+  document.getElementById('addMemberBtn2').addEventListener('click', ()=>go('#/members/new'));
+  function applyFilters(){
+    const nq = document.getElementById('listSearch').value.trim();
+    const ns = document.getElementById('statusFilter').value;
+    const na = document.getElementById('archivedToggle').checked;
+    let h = '#/members?';
+    const p = [];
+    if(nq) p.push('q='+encodeURIComponent(nq));
+    if(ns!=='all') p.push('status='+ns);
+    if(na) p.push('archived=1');
+    go(h + p.join('&'));
+  }
+  let searchTimer;
+  document.getElementById('listSearch').addEventListener('input', ()=>{ clearTimeout(searchTimer); searchTimer = setTimeout(applyFilters, 350); });
+  document.getElementById('statusFilter').addEventListener('change', applyFilters);
+  document.getElementById('archivedToggle').addEventListener('change', applyFilters);
+
+  document.querySelectorAll('[data-view]').forEach(b=> b.addEventListener('click', (e)=>{ e.stopPropagation(); go('#/members/'+b.dataset.view); }));
+  document.querySelectorAll('.member-row').forEach(r=> r.addEventListener('click', ()=> go('#/members/'+r.dataset.id)));
+  document.querySelectorAll('[data-checkin]').forEach(b=> b.addEventListener('click', (e)=>{
+    e.stopPropagation();
+    checkInMember(b.dataset.checkin);
+    render();
+  }));
+}
+function initials(name){
+  return (name||'').trim().split(/\s+/).slice(0,2).map(w=>w[0]).join('').toUpperCase();
+}
+
+function checkInMember(memberId){
+  const att = DB.attendance();
+  const today = todayStr();
+  const already = att.find(a=>a.memberId===memberId && a.date===today);
+  if(already){ toast('Already checked in today', 'error'); return; }
+  const entry = {id: uid(), memberId, date: today, time: new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})};
+  att.push(entry);
+  DB.saveAttendance(att);
+  pushAttendance(entry);
+  toast('Checked in for today', 'success');
+}
+
+/* ============ MEMBER FORM (Add / Edit) ============ */
+function renderMemberForm(editId){
+  const editing = !!editId;
+  const members = DB.members();
+  const existing = editing ? members.find(m=>m.id===editId) : null;
+  if(editing && !existing){ go('#/members'); return; }
+  const previewId = editing ? existing.id : memberIdFmt(DB.peekSeq());
+  let photoData = editing ? (existing.photo || null) : null;
+
+  const d = existing || {
+    name:'', gender:'', dob:'', bloodGroup:'', mobile:'', whatsapp:'',
+    height:'', weight:'', maritalStatus:'', spouseOrParent:'',
+    address:'', pin:'', email:'', profession:'', reference:'',
+    emergency:{name:'', relationship:'', mobile:'', doctorName:'', doctorMobile:''}
+  };
+
+  shell(editing ? 'members' : 'add', editing ? 'Edit Member' : 'Add Member', `
+    <div class="page-head">
+      <div>
+        <h1>${editing ? 'Edit member' : 'Add new member'}</h1>
+        <div class="sub">${editing ? 'Member ID '+esc(existing.id) : 'A member ID is generated automatically'}</div>
+      </div>
+    </div>
+
+    <form id="memberForm" novalidate>
+      <div class="section-card">
+        <div class="form-section-title"><div class="idx">1</div><h3>Basic Information</h3></div>
+
+        <div class="field">
+          <label>Member ID</label>
+          <input type="text" value="${esc(previewId)}" disabled style="opacity:.7;">
+          <div class="hint">Generated automatically and cannot be changed.</div>
+        </div>
+
+        <div class="field">
+          <label>Joining date<span class="req">*</span></label>
+          <input type="date" id="f_joinDate" value="${esc(editing ? existing.membership.joinDate : todayStr())}" max="${todayStr()}">
+          <div class="hint">Defaults to today. Change it if the member actually joined earlier.</div>
+          <div class="err">Please enter a valid joining date (not in the future).</div>
+        </div>
+
+        <div class="photo-box">
+          <div class="photo-preview" id="photoPreview">${photoData ? `<img src="${photoData}">` : iconCamera()}</div>
+          <div class="photo-actions">
+            <button type="button" class="btn btn-outline btn-sm" id="uploadPhotoBtn">Upload photo</button>
+            <button type="button" class="btn btn-outline btn-sm" id="takePhotoBtn">Take photo</button>
+            <input type="file" id="photoFile" accept="image/*" capture="user" class="hidden">
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Full name<span class="req">*</span></label>
+          <input type="text" id="f_name" value="${esc(d.name)}" placeholder="e.g. Arjun Menon">
+          <div class="err">Please enter the member's full name.</div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Gender<span class="req">*</span></label>
+            <div class="segmented" id="f_gender" data-value="${esc(d.gender)}">
+              <button type="button" data-val="Male" class="${d.gender==='Male'?'active':''}">Male</button>
+              <button type="button" data-val="Female" class="${d.gender==='Female'?'active':''}">Female</button>
+              <button type="button" data-val="Other" class="${d.gender==='Other'?'active':''}">Other</button>
+            </div>
+            <div class="err">Please select a gender.</div>
+          </div>
+          <div class="field">
+            <label>Blood group</label>
+            <select id="f_blood">
+              <option value="">Select</option>
+              ${['A+','A-','B+','B-','AB+','AB-','O+','O-','Unknown'].map(bg=>`<option value="${bg}" ${d.bloodGroup===bg?'selected':''}>${bg}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Date of birth<span class="req">*</span></label>
+            <input type="date" id="f_dob" value="${esc(d.dob)}" max="${todayStr()}">
+            <div class="err">Please enter a valid date of birth.</div>
+          </div>
+          <div class="field">
+            <label>Age</label>
+            <input type="text" id="f_age" value="${d.dob ? calcAge(d.dob) : ''}" disabled style="opacity:.7;">
+            <div class="hint">Calculated automatically from date of birth.</div>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Mobile number<span class="req">*</span></label>
+            <input type="tel" id="f_mobile" value="${esc(d.mobile)}" placeholder="10-digit mobile number" maxlength="10">
+            <div class="err">Enter a valid 10-digit mobile number.</div>
+          </div>
+          <div class="field">
+            <label>WhatsApp number</label>
+            <input type="tel" id="f_whatsapp" value="${esc(d.whatsapp)}" placeholder="10-digit WhatsApp number" maxlength="10">
+            <label class="checkbox-row" style="margin-top:8px;"><input type="checkbox" id="f_sameWa"> Same as mobile number</label>
+            <div class="err">Enter a valid 10-digit WhatsApp number.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <div class="form-section-title"><div class="idx">2</div><h3>Physical Details</h3></div>
+        <div class="field-row">
+          <div class="field">
+            <label>Height (cm)</label>
+            <input type="number" id="f_height" value="${esc(d.height)}" min="50" max="260" placeholder="e.g. 172">
+          </div>
+          <div class="field">
+            <label>Weight (kg)</label>
+            <input type="number" id="f_weight" value="${esc(d.weight)}" min="10" max="300" placeholder="e.g. 68">
+          </div>
+        </div>
+        <div class="field">
+          <label>Marital status</label>
+          <div class="segmented" id="f_marital" data-value="${esc(d.maritalStatus)}">
+            <button type="button" data-val="Single" class="${d.maritalStatus==='Single'?'active':''}">Single</button>
+            <button type="button" data-val="Married" class="${d.maritalStatus==='Married'?'active':''}">Married</button>
+            <button type="button" data-val="Other" class="${d.maritalStatus==='Other'?'active':''}">Other</button>
+          </div>
+        </div>
+        <div class="field">
+          <label id="spouseLabel">Spouse / parent name</label>
+          <input type="text" id="f_spouse" value="${esc(d.spouseOrParent)}" placeholder="Optional">
+        </div>
+      </div>
+
+      <div class="section-card">
+        <div class="form-section-title"><div class="idx">3</div><h3>Contact Details</h3></div>
+        <div class="field">
+          <label>Residential address<span class="req">*</span></label>
+          <textarea id="f_address" placeholder="House / street / locality / city">${esc(d.address)}</textarea>
+          <div class="err">Please enter the residential address.</div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>PIN code</label>
+            <input type="text" id="f_pin" value="${esc(d.pin)}" maxlength="6" placeholder="6-digit PIN">
+            <div class="err">Enter a valid 6-digit PIN code.</div>
+          </div>
+          <div class="field">
+            <label>Email</label>
+            <input type="email" id="f_email" value="${esc(d.email)}" placeholder="name@example.com">
+            <div class="err">Enter a valid email address.</div>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Profession</label>
+            <input type="text" id="f_profession" value="${esc(d.profession)}" placeholder="e.g. Software Engineer">
+          </div>
+          <div class="field">
+            <label>Reference</label>
+            <input type="text" id="f_reference" value="${esc(d.reference)}" placeholder="Who referred them?">
+          </div>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <div class="form-section-title"><div class="idx">4</div><h3>Emergency Contact</h3></div>
+        <div class="field-row">
+          <div class="field">
+            <label>Contact name<span class="req">*</span></label>
+            <input type="text" id="f_ecName" value="${esc(d.emergency.name)}">
+            <div class="err">Please enter an emergency contact name.</div>
+          </div>
+          <div class="field">
+            <label>Relationship</label>
+            <select id="f_ecRel">
+              <option value="">Select</option>
+              ${['Spouse','Parent','Sibling','Friend','Other'].map(r=>`<option value="${r}" ${d.emergency.relationship===r?'selected':''}>${r}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label>Contact mobile number<span class="req">*</span></label>
+          <input type="tel" id="f_ecMobile" value="${esc(d.emergency.mobile)}" maxlength="10" placeholder="10-digit mobile number">
+          <div class="err">Enter a valid 10-digit mobile number.</div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Doctor name</label>
+            <input type="text" id="f_docName" value="${esc(d.emergency.doctorName)}" placeholder="Optional">
+          </div>
+          <div class="field">
+            <label>Doctor mobile number</label>
+            <input type="tel" id="f_docMobile" value="${esc(d.emergency.doctorMobile)}" maxlength="10" placeholder="Optional">
+            <div class="err">Enter a valid 10-digit mobile number.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="save-bar">
+        <button type="button" class="btn btn-outline" id="cancelFormBtn">Cancel</button>
+        <button type="submit" class="btn btn-primary">${editing ? 'Save changes' : 'Save member'}</button>
+      </div>
+    </form>
+  `);
+
+  // segmented control wiring
+  document.querySelectorAll('.segmented').forEach(seg=>{
+    seg.addEventListener('click', (e)=>{
+      const btn = e.target.closest('button'); if(!btn) return;
+      seg.dataset.value = btn.dataset.val;
+      seg.querySelectorAll('button').forEach(b=>b.classList.toggle('active', b===btn));
+      if(seg.id === 'f_marital'){
+        const lbl = document.getElementById('spouseLabel');
+        lbl.textContent = btn.dataset.val === 'Married' ? 'Spouse name' : (btn.dataset.val === 'Single' ? "Parent's name" : 'Spouse / parent name');
+      }
+    });
+  });
+
+  // age auto calc
+  document.getElementById('f_dob').addEventListener('change', function(){
+    const age = calcAge(this.value);
+    document.getElementById('f_age').value = age===null ? '' : age;
+  });
+
+  // whatsapp same-as-mobile
+  document.getElementById('f_sameWa').addEventListener('change', function(){
+    if(this.checked) document.getElementById('f_whatsapp').value = document.getElementById('f_mobile').value;
+  });
+
+  // photo upload
+  document.getElementById('uploadPhotoBtn').addEventListener('click', ()=> document.getElementById('photoFile').click());
+  document.getElementById('photoFile').addEventListener('change', function(){
+    if(this.files && this.files[0]){
+      compressImageFile(this.files[0], (dataUrl)=>{
+        photoData = dataUrl;
+        document.getElementById('photoPreview').innerHTML = `<img src="${dataUrl}">`;
+      });
+    }
+  });
+  document.getElementById('takePhotoBtn').addEventListener('click', ()=>{
+    openCamera((dataUrl)=>{
+      photoData = dataUrl;
+      document.getElementById('photoPreview').innerHTML = `<img src="${dataUrl}">`;
+    });
+  });
+
+  document.getElementById('cancelFormBtn').addEventListener('click', ()=>{
+    go(editing ? ('#/members/'+editId) : '#/members');
+  });
+
+  document.getElementById('memberForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    submitMemberForm(editing, existing, photoData);
+  });
+}
+
+function fieldOk(inputEl, ok){
+  const wrap = inputEl.closest('.field');
+  wrap.classList.toggle('has-error', !ok);
+  return ok;
+}
+
+function submitMemberForm(editing, existing, photoData){
+  let ok = true;
+  const name = document.getElementById('f_name');
+  const gender = document.getElementById('f_gender').dataset.value || '';
+  const dob = document.getElementById('f_dob');
+  const joinDate = document.getElementById('f_joinDate');
+  const mobile = document.getElementById('f_mobile');
+  const whatsapp = document.getElementById('f_whatsapp');
+  const address = document.getElementById('f_address');
+  const pin = document.getElementById('f_pin');
+  const email = document.getElementById('f_email');
+  const ecName = document.getElementById('f_ecName');
+  const ecMobile = document.getElementById('f_ecMobile');
+  const docMobile = document.getElementById('f_docMobile');
+
+  ok = fieldOk(name, name.value.trim().length>0) && ok;
+  ok = fieldOk(document.getElementById('f_gender'), !!gender) && ok;
+  ok = fieldOk(dob, !!dob.value && dob.value <= todayStr()) && ok;
+  ok = fieldOk(joinDate, !!joinDate.value && joinDate.value <= todayStr()) && ok;
+  ok = fieldOk(mobile, validMobile(mobile.value)) && ok;
+  ok = fieldOk(whatsapp, !whatsapp.value || validMobile(whatsapp.value)) && ok;
+  ok = fieldOk(address, address.value.trim().length>0) && ok;
+  ok = fieldOk(pin, validPin(pin.value)) && ok;
+  ok = fieldOk(email, validEmail(email.value)) && ok;
+  ok = fieldOk(ecName, ecName.value.trim().length>0) && ok;
+  ok = fieldOk(ecMobile, validMobile(ecMobile.value)) && ok;
+  ok = fieldOk(docMobile, !docMobile.value || validMobile(docMobile.value)) && ok;
+
+  if(!ok){ toast('Please fix the highlighted fields', 'error'); const firstErr = document.querySelector('.has-error'); if(firstErr) firstErr.scrollIntoView({behavior:'smooth', block:'center'}); return; }
+
+  const payload = {
+    name: name.value.trim(),
+    gender,
+    dob: dob.value,
+    bloodGroup: document.getElementById('f_blood').value,
+    mobile: mobile.value.trim(),
+    whatsapp: whatsapp.value.trim(),
+    height: document.getElementById('f_height').value,
+    weight: document.getElementById('f_weight').value,
+    maritalStatus: document.getElementById('f_marital').dataset.value || '',
+    spouseOrParent: document.getElementById('f_spouse').value.trim(),
+    address: address.value.trim(),
+    pin: pin.value.trim(),
+    email: email.value.trim(),
+    profession: document.getElementById('f_profession').value.trim(),
+    reference: document.getElementById('f_reference').value.trim(),
+    emergency: {
+      name: ecName.value.trim(),
+      relationship: document.getElementById('f_ecRel').value,
+      mobile: ecMobile.value.trim(),
+      doctorName: document.getElementById('f_docName').value.trim(),
+      doctorMobile: docMobile.value.trim()
+    },
+    photo: photoData
+  };
+
+  const members = DB.members();
+  const now = new Date().toISOString();
+
+  if(editing){
+    const idx = members.findIndex(m=>m.id===existing.id);
+    members[idx] = Object.assign({}, members[idx], payload, {
+      membership: Object.assign({}, members[idx].membership, {joinDate: joinDate.value}),
+      meta: Object.assign({}, members[idx].meta, {updatedAt: now, updatedBy: currentUser()})
+    });
+    DB.saveMembers(members);
+    pushMember(members[idx]);
+    setFlash('Changes saved for ' + esc(payload.name) + '.');
+    go('#/members/' + existing.id);
+  } else {
+    const seq = DB.nextSeq();
+    const id = memberIdFmt(seq);
+    const member = Object.assign({id}, payload, {
+      membership: {planId: null, joinDate: joinDate.value, validUntil: null, dues: 0},
+      meta: {createdAt: now, createdBy: currentUser(), updatedAt: now, updatedBy: currentUser(), deleted:false, deletedAt:null}
+    });
+    members.push(member);
+    DB.saveMembers(members);
+    pushMember(member);
+    setFlash('Member added successfully — ID <span class="idpill">' + esc(id) + '</span>.');
+    go('#/members/' + id);
+  }
+  render();
+}
+
+/* ============ MEMBER PROFILE ============ */
+function renderProfile(id){
+  const members = DB.members();
+  const m = members.find(x=>x.id===id);
+  if(!m){ go('#/members'); return; }
+  const st = membershipStatus(m);
+  const att = DB.attendance().filter(a=>a.memberId===id).sort((a,b)=> b.date.localeCompare(a.date));
+  const checkedInToday = att.some(a=>a.date===todayStr());
+  const flash = popFlash();
+
+  shell('members', 'Member Profile', `
+    ${flash ? `<div class="flash">${iconCheck()} ${flash}</div>` : ''}
+    <div class="page-head">
+      <button class="btn btn-ghost btn-sm" id="backBtn">${iconChevronLeft()} Back to members</button>
+    </div>
+    <div class="card" style="margin-bottom:18px;">
+      <div class="profile-head">
+        ${m.photo ? `<img class="profile-photo" src="${m.photo}">` : `<div class="avatar" style="width:84px;height:84px;font-size:22px;">${esc(initials(m.name))}</div>`}
+        <div style="flex:1;min-width:180px;">
+          <div class="profile-name-row">
+            <h2 style="font-size:22px;">${esc(m.name)}</h2>
+            ${m.meta.deleted ? `<span class="badge badge-archived">Archived</span>` : `<span class="badge ${st==='active'?'badge-active':'badge-expired'}">${st==='active'?'Active':'Expired'}</span>`}
+          </div>
+          <div class="profile-meta">${esc(m.id)} · ${m.gender||'—'} · ${m.dob? calcAge(m.dob)+' yrs':'—'} · ${esc(m.mobile)}</div>
+        </div>
+        <div class="head-actions">
+          ${!m.meta.deleted ? `<button class="btn ${checkedInToday?'btn-outline':'btn-primary'}" id="checkinBtn" ${checkedInToday?'disabled':''}>${iconCheck()} ${checkedInToday?'Checked in today':'Check in today'}</button>` : ''}
+          ${!m.meta.deleted ? `<button class="btn btn-outline" id="editBtn">Edit</button>` : ''}
+          ${!m.meta.deleted
+            ? `<button class="btn btn-danger" id="archiveBtn">Archive</button>`
+            : `<button class="btn btn-outline" id="restoreBtn">Restore</button>`}
+        </div>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="form-section-title"><div class="idx">1</div><h3>Basic Information</h3></div>
+      <div class="info-grid">
+        <div class="info-item"><span class="k">Date of birth</span><span class="v">${fmtDate(m.dob)}</span></div>
+        <div class="info-item"><span class="k">Age</span><span class="v">${m.dob? calcAge(m.dob):'—'}</span></div>
+        <div class="info-item"><span class="k">Blood group</span><span class="v">${esc(m.bloodGroup)||'—'}</span></div>
+        <div class="info-item"><span class="k">Mobile</span><span class="v">${esc(m.mobile)}</span></div>
+        <div class="info-item"><span class="k">WhatsApp</span><span class="v">${esc(m.whatsapp)||'—'}</span></div>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="form-section-title"><div class="idx">2</div><h3>Physical Details</h3></div>
+      <div class="info-grid">
+        <div class="info-item"><span class="k">Height</span><span class="v">${m.height? m.height+' cm':'—'}</span></div>
+        <div class="info-item"><span class="k">Weight</span><span class="v">${m.weight? m.weight+' kg':'—'}</span></div>
+        <div class="info-item"><span class="k">Marital status</span><span class="v">${esc(m.maritalStatus)||'—'}</span></div>
+        <div class="info-item"><span class="k">Spouse / parent</span><span class="v">${esc(m.spouseOrParent)||'—'}</span></div>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="form-section-title"><div class="idx">3</div><h3>Contact Details</h3></div>
+      <div class="info-grid">
+        <div class="info-item" style="grid-column:1/-1;"><span class="k">Address</span><span class="v">${esc(m.address)}${m.pin? ', PIN '+esc(m.pin):''}</span></div>
+        <div class="info-item"><span class="k">Email</span><span class="v">${esc(m.email)||'—'}</span></div>
+        <div class="info-item"><span class="k">Profession</span><span class="v">${esc(m.profession)||'—'}</span></div>
+        <div class="info-item"><span class="k">Reference</span><span class="v">${esc(m.reference)||'—'}</span></div>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="form-section-title"><div class="idx">4</div><h3>Emergency Contact</h3></div>
+      <div class="info-grid">
+        <div class="info-item"><span class="k">Contact name</span><span class="v">${esc(m.emergency.name)}</span></div>
+        <div class="info-item"><span class="k">Relationship</span><span class="v">${esc(m.emergency.relationship)||'—'}</span></div>
+        <div class="info-item"><span class="k">Contact mobile</span><span class="v">${esc(m.emergency.mobile)}</span></div>
+        <div class="info-item"><span class="k">Doctor name</span><span class="v">${esc(m.emergency.doctorName)||'—'}</span></div>
+        <div class="info-item"><span class="k">Doctor mobile</span><span class="v">${esc(m.emergency.doctorMobile)||'—'}</span></div>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="form-section-title"><div class="idx">✓</div><h3>Membership</h3></div>
+      <div class="field-row">
+        <div class="field">
+          <label>Joining date</label>
+          <input type="date" id="mJoinDate" value="${esc(m.membership.joinDate||'')}" max="${todayStr()}">
+          <div class="hint">Defaults to the day the member was added; change it if they joined earlier.</div>
+        </div>
+        <div class="field">
+          <label>Valid until</label>
+          <input type="date" id="mValidUntil" value="${esc(m.membership.validUntil||'')}">
+          <div class="hint">Leave blank to keep the member marked as active with no fixed expiry.</div>
+        </div>
+      </div>
+      <div class="field">
+        <label>Outstanding dues (₹)</label>
+        <input type="number" id="mDues" min="0" value="${m.membership.dues||0}" style="max-width:220px;">
+      </div>
+      <button class="btn btn-outline btn-sm" id="saveMembershipBtn">Save membership details</button>
+      <div class="divider"></div>
+      <div class="k" style="font-size:12px;color:var(--muted);font-weight:600;margin-bottom:8px;">RECENT CHECK-INS</div>
+      ${att.length ? att.slice(0,5).map(a=>`<div style="font-size:13.5px;padding:4px 0;color:var(--ink-2);">${fmtDate(a.date)} · ${esc(a.time)}</div>`).join('') : `<div class="text-muted" style="font-size:13.5px;">No check-ins recorded yet.</div>`}
+    </div>
+
+    <div class="section-card">
+      <div class="info-grid">
+        <div class="info-item"><span class="k">Created</span><span class="v">${fmtDateTime(m.meta.createdAt)} by ${esc(m.meta.createdBy)}</span></div>
+        <div class="info-item"><span class="k">Last updated</span><span class="v">${fmtDateTime(m.meta.updatedAt)} by ${esc(m.meta.updatedBy)}</span></div>
+      </div>
+    </div>
+  `);
+
+  document.getElementById('backBtn').addEventListener('click', ()=>go('#/members'));
+  if(!m.meta.deleted){
+    document.getElementById('editBtn').addEventListener('click', ()=>go('#/members/'+id+'/edit'));
+    document.getElementById('archiveBtn').addEventListener('click', ()=>{
+      confirmDialog('Archive this member?', 'This will hide '+esc(m.name)+' from the active members list. No data is permanently deleted, and you can restore this record anytime from "Show archived".', 'Archive member', ()=>{
+        const list = DB.members();
+        const idx = list.findIndex(x=>x.id===id);
+        list[idx].meta.deleted = true;
+        list[idx].meta.deletedAt = new Date().toISOString();
+        list[idx].meta.updatedBy = currentUser();
+        list[idx].meta.updatedAt = new Date().toISOString();
+        DB.saveMembers(list);
+        pushMember(list[idx]);
+        setFlash('Member archived. You can restore them anytime.');
+        go('#/members');
+      }, true);
+    });
+    const checkinBtn = document.getElementById('checkinBtn');
+    if(checkinBtn) checkinBtn.addEventListener('click', ()=>{ checkInMember(id); render(); });
+  } else {
+    document.getElementById('restoreBtn').addEventListener('click', ()=>{
+      const list = DB.members();
+      const idx = list.findIndex(x=>x.id===id);
+      list[idx].meta.deleted = false;
+      list[idx].meta.deletedAt = null;
+      list[idx].meta.updatedBy = currentUser();
+      list[idx].meta.updatedAt = new Date().toISOString();
+      DB.saveMembers(list);
+      pushMember(list[idx]);
+      toast('Member restored', 'success');
+      render();
+    });
+  }
+  document.getElementById('saveMembershipBtn').addEventListener('click', ()=>{
+    const jd = document.getElementById('mJoinDate').value;
+    const vu = document.getElementById('mValidUntil').value;
+    const dues = document.getElementById('mDues').value;
+    if(jd && vu && vu < jd){
+      toast('Valid-until date cannot be before the joining date', 'error');
+      return;
+    }
+    const list = DB.members();
+    const idx = list.findIndex(x=>x.id===id);
+    list[idx].membership.joinDate = jd || list[idx].membership.joinDate;
+    list[idx].membership.validUntil = vu || null;
+    list[idx].membership.dues = Number(dues || 0);
+    list[idx].meta.updatedAt = new Date().toISOString();
+    list[idx].meta.updatedBy = currentUser();
+    DB.saveMembers(list);
+    pushMember(list[idx]);
+    toast('Membership details updated', 'success');
+    render();
+  });
+}
+
+})();
+</script>
+</body>
+</html>
