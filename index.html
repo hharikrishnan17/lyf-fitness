@@ -413,14 +413,33 @@ function rowToMember(r, existingPhoto){
 async function pushMember(m){
   const url = getSheetUrl(); if(!url) return;
   try{
-    await fetch(url, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify({action:'saveMember', member: memberToRow(m)})});
-  }catch(err){ console.warn('Sheet sync push failed', err); }
+    const res = await fetch(url, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify({action:'saveMember', member: memberToRow(m)})});
+    const result = await res.json().catch(()=>({}));
+    if(!result || result.ok !== true){ throw new Error('Sheet did not confirm the save'); }
+  }catch(err){
+    console.warn('Sheet sync push failed', err);
+    toast('Could not save ' + m.name + ' to the Google Sheet — check your connection and try "Sync now".', 'error');
+  }
 }
 async function pushAttendance(entry){
   const url = getSheetUrl(); if(!url) return;
   try{
-    await fetch(url, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify({action:'checkin', entry})});
-  }catch(err){ console.warn('Sheet sync push failed', err); }
+    const res = await fetch(url, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify({action:'checkin', entry})});
+    const result = await res.json().catch(()=>({}));
+    if(!result || result.ok !== true){ throw new Error('Sheet did not confirm the check-in'); }
+  }catch(err){
+    console.warn('Sheet sync push failed', err);
+    toast('Could not save this check-in to the Google Sheet.', 'error');
+  }
+}
+function bumpLocalSeqPastExisting(members){
+  let maxSeq = 0;
+  members.forEach(m=>{
+    const match = /^LYF-(\d+)$/.exec(m.id || '');
+    if(match){ const n = parseInt(match[1], 10); if(n > maxSeq) maxSeq = n; }
+  });
+  const curSeq = parseInt(localStorage.getItem('lyf_seq') || '0', 10);
+  if(maxSeq > curSeq) localStorage.setItem('lyf_seq', String(maxSeq));
 }
 async function pullFromSheet(silent){
   const url = getSheetUrl(); if(!url) return false;
@@ -431,6 +450,7 @@ async function pullFromSheet(silent){
     DB.members().forEach(m=>{ photoMap[m.id] = m.photo; });
     const members = (data.members||[]).map(r=> rowToMember(r, photoMap[r.id]));
     DB.saveMembers(members);
+    bumpLocalSeqPastExisting(members);
     DB.saveAttendance((data.attendance||[]).map(a=>({id:a.id||uid(), memberId:a.memberId, date:a.date, time:a.time})));
     setLastSync(new Date().toISOString());
     return true;
@@ -439,6 +459,7 @@ async function pullFromSheet(silent){
     return false;
   }
 }
+
 
 /* ============ UTILITIES ============ */
 function uid(){ return 'x'+Math.random().toString(36).slice(2,10); }
